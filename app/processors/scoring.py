@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 def calculate_scores(df: pd.DataFrame) -> pd.DataFrame:
     '''
     Calculates accumulation and distribution signals using EOD data.
@@ -38,6 +39,7 @@ def calculate_scores(df: pd.DataFrame) -> pd.DataFrame:
         (data["close_price"] - data["low_price"]) / price_range,
         0.5,
     )
+    data["close_position"] = data["close_position"].clip(0, 1)
 
     delivery_component = np.clip(data["delivery_pct"].fillna(0) / 80 * 35, 0, 35)
     volume_component = np.clip(data["volume_ratio"].fillna(1) / 3 * 30, 0, 30)
@@ -75,6 +77,7 @@ def calculate_scores(df: pd.DataFrame) -> pd.DataFrame:
         ]
     ]
 
+
 def classify_signal(row) -> str:
     if row["accumulation_score"] >= 75 and row["accumulation_score"] > row["distribution_score"] + 15:
         return "Strong Accumulation"
@@ -88,6 +91,7 @@ def classify_signal(row) -> str:
         return "High Volume Watch"
     return "Neutral"
 
+
 def classify_confidence(row) -> str:
     max_score = max(row["accumulation_score"], row["distribution_score"])
     if max_score >= 80:
@@ -95,6 +99,7 @@ def classify_confidence(row) -> str:
     if max_score >= 60:
         return "Medium"
     return "Low"
+
 
 def build_comment(row) -> str:
     return (
