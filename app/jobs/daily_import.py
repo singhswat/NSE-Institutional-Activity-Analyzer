@@ -1,10 +1,24 @@
 import argparse
+from datetime import date, datetime
+
 import pandas as pd
 
 from app.collectors.sample_loader import load_sample_daily_data
 from app.collectors.nse_file_loader import load_bhavcopy_csv
 from app.processors.scoring import calculate_scores
 from app.database.supabase_client import get_supabase
+
+
+def serialize_records(df: pd.DataFrame) -> list[dict]:
+    records = df.astype(object).where(pd.notnull(df), None).to_dict(orient="records")
+
+    for record in records:
+        for key, value in record.items():
+            if isinstance(value, (date, datetime)):
+                record[key] = value.isoformat()
+
+    return records
+
 
 def upsert_stock_master(df: pd.DataFrame):
     supabase = get_supabase()
@@ -19,15 +33,20 @@ def upsert_stock_master(df: pd.DataFrame):
 
     supabase.table("stock_master").upsert(records, on_conflict="symbol").execute()
 
+
 def upsert_daily(df: pd.DataFrame):
     supabase = get_supabase()
-    records = df.where(pd.notnull(df), None).to_dict(orient="records")
-    supabase.table("stock_daily").upsert(records, on_conflict="symbol,trade_date").execute()
+    supabase.table("stock_daily").upsert(
+        serialize_records(df), on_conflict="symbol,trade_date"
+    ).execute()
+
 
 def upsert_scores(scores: pd.DataFrame):
     supabase = get_supabase()
-    records = scores.where(pd.notnull(scores), None).to_dict(orient="records")
-    supabase.table("stock_scores").upsert(records, on_conflict="symbol,trade_date").execute()
+    supabase.table("stock_scores").upsert(
+        serialize_records(scores), on_conflict="symbol,trade_date"
+    ).execute()
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -51,6 +70,7 @@ def main():
     print(f"Imported {len(df)} stock daily rows")
     print(f"Generated {len(scores)} score rows")
     print(scores.sort_values('accumulation_score', ascending=False).head(10).to_string(index=False))
+
 
 if __name__ == "__main__":
     main()
