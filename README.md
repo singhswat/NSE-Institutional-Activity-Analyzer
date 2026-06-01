@@ -5,7 +5,7 @@ A Python MVP application to collect NSE end-of-day data, store it in Supabase, a
 ## What this MVP does
 
 - Loads NSE-style end-of-day stock data
-- Loads delivery quantity and delivery percentage
+- Loads delivery quantity and delivery percentage when available
 - Stores data in Supabase PostgreSQL
 - Calculates:
   - 20-day average volume
@@ -37,7 +37,7 @@ app/
   jobs/             Daily import job
 sql/                Supabase SQL schema
 sample_data/        Demo CSV files
-dashboard/          Placeholder for Next.js dashboard
+tests/              Regression tests
 ```
 
 ---
@@ -86,6 +86,12 @@ pip install -r requirements.txt
 python -m app.jobs.daily_import --sample
 ```
 
+To import a legacy or current NSE equity bhavcopy-style CSV instead:
+
+```bash
+python -m app.jobs.daily_import --file path/to/bhavcopy.csv
+```
+
 ### 6. Start API
 
 ```bash
@@ -96,6 +102,15 @@ Open:
 
 ```text
 http://127.0.0.1:8000/docs
+```
+
+---
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
 ```
 
 ---
@@ -156,7 +171,7 @@ Watchlist
 
 Recommended next build items:
 
-1. Replace sample CSV with real NSE bhavcopy parser
+1. Add automated NSE report downloads
 2. Add NSE delivery report parser
 3. Add F&O OI data
 4. Add sector-level dashboard
