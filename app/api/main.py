@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from app.database.supabase_client import get_supabase
 
 app = FastAPI(
@@ -6,12 +6,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
+
 @app.get("/signals/latest")
-def latest_signals(limit: int = 50):
+def latest_signals(limit: int = Query(default=50, ge=1, le=500)):
     supabase = get_supabase()
 
     latest_date_response = (
@@ -38,8 +40,9 @@ def latest_signals(limit: int = 50):
 
     return response.data
 
+
 @app.get("/signals/accumulation")
-def accumulation_signals(limit: int = 25):
+def accumulation_signals(limit: int = Query(default=25, ge=1, le=500)):
     supabase = get_supabase()
 
     response = (
@@ -54,8 +57,9 @@ def accumulation_signals(limit: int = 25):
 
     return response.data
 
+
 @app.get("/signals/distribution")
-def distribution_signals(limit: int = 25):
+def distribution_signals(limit: int = Query(default=25, ge=1, le=500)):
     supabase = get_supabase()
 
     response = (
@@ -70,8 +74,9 @@ def distribution_signals(limit: int = 25):
 
     return response.data
 
+
 @app.get("/stocks/{symbol}/history")
-def stock_history(symbol: str, limit: int = 100):
+def stock_history(symbol: str, limit: int = Query(default=100, ge=1, le=500)):
     supabase = get_supabase()
 
     response = (
